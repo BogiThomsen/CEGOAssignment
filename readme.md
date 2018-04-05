@@ -9,8 +9,8 @@ The solution is a console application that goes through the following steps: <br
 	3. Writes results of query to file. <br />
 	4. Reads file and, per row, queries the database on id and compares data in file against data in database. <br />
 	5. If the data in file is correct, it deletes the data from the database. <br /><br />
-This solution will run any SQL statement passed from the config file. The statement is matched against <br />
-`"SELECT id, firstName, lastName, email FROM users"`, and additional statements after first `;` are removed.
+This solution will match the SQL statement in the config file against: <br />
+`"SELECT id, firstName, lastName, email FROM users"`, and additional statements after first `;` are removed before the statement is run.
 
 ## How to use
 Fill out the config.toml file, build and run the application. <br />
