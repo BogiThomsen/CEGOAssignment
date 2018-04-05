@@ -4,7 +4,7 @@ The database choice fell on MariaDB, as I like MySQL, but after Oracle acquired 
 
 ## The solution
 The solution is a console application that goes through the following steps: <br />
-	1. Connect to the database and run the SQL statement presented in the TOML config file. <br />
+	1. Connect to the database and processes and runs the SQL statement presented in the TOML config file. <br />
 	2. Ask for confirmation of deletion of data, so the user can catch any errors in their SQL statement before data is deleted. <br />
 	3. Writes results of query to file. <br />
 	4. Reads file and, per row, queries the database on id and compares data in file against data in database. <br />
