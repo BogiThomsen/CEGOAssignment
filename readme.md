@@ -16,12 +16,13 @@ To change SQL statement or database, just change it in the config file and run a
 
 
 ## Testing
-Run tests with "go test -race"
+Run tests with `go test -race`
 
 ## Concerns
-This solution will run any SQL statement passed from the config file. As the user also has to supply the username/password for the database, this hasn't been a focus to protect against. <br />
+This solution will run any SQL statement passed from the config file. The statement is matched against <br />
+`"SELECT id, firstName, lastName, email FROM users"`, and additional statements after first `;` are removed. As the user also has to supply the username/password for the database, any injection voulnerabilities havent been addressed<br />
 
 ## Future work
 The solution could be created as a package instead of an application. <br />
-Update to take DSN as input instead of TOMÆ config, and use https://godoc.org/github.com/go-sql-driver/mysql#Config
+Update to take DSN as input instead of TOML config, and use https://godoc.org/github.com/go-sql-driver/mysql#Config
 
