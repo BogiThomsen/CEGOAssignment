@@ -1,6 +1,6 @@
 # CEGO jobinterview assignment
 Given the choice between Go, PHP, JS, and Bash, I have chosen Go as the language, as I for quite some time have wanted learn Go, but never got started. <br />
-The database choice fell on MariaDB, as I like MySQL, but after Oracle acquired MySQL they might have a conflict of interrest in developing MySQL and I made the switch. That said, this solution should also work for MySQL, but this hasn't been tested. <br />
+The database choice fell on MariaDB as I chose to learn a new language for this task, and haven't worked with CockroachDB or SQLite, I chose something familiar. This solution should also work for MySQL, but this hasn't been tested. <br />
 
 ## The solution
 The solution is a console application that goes through the following steps: <br />
