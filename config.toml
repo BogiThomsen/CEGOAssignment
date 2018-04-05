@@ -1,0 +1,13 @@
+
+# Statement must select all rows in user ex: "SELECT id, firstName, lastName, email FROM users WHERE firstName LIKE 'R%';"
+stmt = ""
+
+# Insert database connection information
+[database]
+user = ""
+password = ""
+dbname = ""
+host = ""
+port = ""
+testtable = ""
+
