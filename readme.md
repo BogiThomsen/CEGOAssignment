@@ -18,7 +18,9 @@ To change SQL statement or database, just change it in the config file and run a
 ## Testing
 Still to come
 
-## Concerns and future work
+## Concerns
 This solution will run any SQL statement passed from the config file. As the user also has to supply the username/password for the database, this hasn't been a focus to protect against. <br />
+
+## Future work
 The solution could be created as a package instead of an application. <br />
 
