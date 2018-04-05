@@ -14,12 +14,18 @@ import (
 var fileName string
 
 //Writes user data to CSV file with the delimiter ;
-func writeUsersToFile(users *[]User) (err error){
+func WriteUsersToFile(users *[]User) (err error){
+	//Create subfolder for data if it doesnt exist
+	err = os.MkdirAll(filepath.Join(".","DeletedUserData"), os.ModePerm)
+	if err != nil {
+        err = fmt.Errorf("Error creating folder: %s", err)
+        return
+    }
 	//Creates file
-	fileName = buildCSVFileName()
+	fileName = BuildCSVFileName()
 	file, err := os.Create(fileName)
     if err != nil {
-        err = fmt.Errorf("Cannot create file: ", err)
+        err = fmt.Errorf("Cannot create file: %s", err)
         return
     } else {
     	fmt.Printf("Writing %d users to file.\n", len(*users))
@@ -43,8 +49,7 @@ func writeUsersToFile(users *[]User) (err error){
 }
 
 //Reads users from file created in current session
-func readUsersFromFile() (users []User, err error){
-	var user User
+func ReadUsersFromFile() (users []User, err error){
 	fmt.Println("Reading users from file.")
 	//open file that was created this session
 	f, err := os.Open(fileName)
@@ -71,14 +76,9 @@ func readUsersFromFile() (users []User, err error){
                 }
                 log.Fatal(err)
             }
-            //fmt.Printf("0: %s \n", line[0])
             //create user
-        	user = User{
-				ID: line[0],
-				firstName: line[1],
-				lastName: line[2],
-				email: line[3],
-			}
+        	user := NewUser(line[0], line[1], line[2], line[3])
+			
 			//append to array of users
 			users = append(users, user)    
         }
@@ -91,7 +91,7 @@ func readUsersFromFile() (users []User, err error){
 }
 
 //Builds filename based on execution directory and time of creation
-func buildCSVFileName() string {
+func BuildCSVFileName() string {
 	ex, err := os.Executable()
     if err != nil {
         log.Fatal(err)
@@ -100,7 +100,7 @@ func buildCSVFileName() string {
 	return filepath.Join(exPath, "DeletedUserData", "DeletedUsers_" + time.Now().Format("2006-01-02T150405") + ".csv")
 }
 
-func deleteFile(){
+func DeleteFile(){
 	err := os.Remove(fileName)
 	if err != nil {
 		log.Fatal(err)

@@ -7,6 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"fmt"
 	"strings"
+	"regexp"
 )
 
 //Config struct for toml config file
@@ -26,18 +27,23 @@ type database struct {
 }
 
 
-var db *sql.DB
 var config tomlConfig
+var processedStmt string
 
-//Reads config file,creates connection to database
-func connectToDatabase() (err error) {
+//Reads config file
+//Processes config statement
+//Creates connection to database
+func ConnectToDatabase() (db *sql.DB, err error) {
 
 	//Read config file into config struct
 	_, err = toml.DecodeFile("config.toml", &config)
 	if err != nil {
 		return
 	}
-
+	processedStmt, err = ProcessStatement(config.Stmt)
+	if err != nil {
+		return
+	}
 	//Create DSN string from config struct
 	DSN := (config.DB.User + ":" + config.DB.Password + "@("+config.DB.Host+":"+config.DB.Port+")/" + config.DB.Dbname)
 
@@ -47,20 +53,20 @@ func connectToDatabase() (err error) {
 }
 
 //Closes database connection
-func closeDatabase(){
+func CloseDatabase(db *sql.DB){
 	db.Close()
 }
 
 //Runs a select statement and adds users to user array
 //Can only run "SELECT * FROM users" statements.
 //Can still handle any WHERE clause 
-func runSelectStatement(users *[]User) (err error){
+func RunSelectStatement(db *sql.DB, users *[]User) (err error){
 	//create user struct
-	var user User
+	var id, firstName, lastName, email string
 
 	// Run select stmt
-	fmt.Printf("Running Select Statement: \"%s\"\n", config.Stmt)
-	rows, err := db.Query(config.Stmt)
+	fmt.Printf("Running Select Statement: \"%s\"\n", processedStmt)
+	rows, err := db.Query(processedStmt)
 	if err != nil {
 		return
 	}
@@ -69,10 +75,11 @@ func runSelectStatement(users *[]User) (err error){
 	//Iterate over rows
 	for rows.Next() {
 		//scan all columns into user struct
-		err := rows.Scan(&user.ID, &user.firstName, &user.lastName, &user.email)
+		err := rows.Scan(&id, &firstName, &lastName, &email)
 		if err != nil {
 			log.Fatal(err)
 		}
+		user := NewUser(id, firstName, lastName, email)
 		//add current user to user struct array
 		*users = append(*users, user)
 	}
@@ -82,9 +89,10 @@ func runSelectStatement(users *[]User) (err error){
 	return
 }
 
-//Creates temporary table 
-func createTempTableForDelete() (err error){
-	tableStatement := fmt.Sprintf("CREATE TEMPORARY TABLE IF NOT EXISTS idForDelete AS (%s);", strings.Trim(config.Stmt, ";"))
+//Creates temporary table with select statement.
+//This is used for passing into an IN statement for deletion of users
+func CreateTempTableForDelete(db *sql.DB) (err error){
+	tableStatement := fmt.Sprintf("CREATE TEMPORARY TABLE IF NOT EXISTS idForDelete AS (%s);", strings.Trim(processedStmt, ";"))
 	_, err = db.Exec(tableStatement)
 	if err != nil {
 		return
@@ -94,7 +102,7 @@ func createTempTableForDelete() (err error){
 
 
 //Begins a transaction, deletes users based on ID, Commits if no errors, else rolls back transaction.
-func deleteUsersByIdTransaction () (err error){
+func DeleteUsersByIdTransaction (db *sql.DB) (err error){
 	//Open transaction connection
 	tx, err := db.Begin()
     if err != nil {
@@ -109,11 +117,7 @@ func deleteUsersByIdTransaction () (err error){
         }
         err = tx.Commit()
     }()
-    //Creating temporary table to delete users from database
-	err = createTempTableForDelete()
-	if err != nil {
-		return
-	} 
+     
     fmt.Println("Deleting users from database.")
     //Transaction runs delete statement    
     result, err := tx.Exec("DELETE FROM users WHERE id IN (SELECT id FROM idForDelete);")
@@ -126,7 +130,7 @@ func deleteUsersByIdTransaction () (err error){
     return
 }
 
-func checkDbAgainstFile(users []User) bool{
+func CheckDbAgainstFile(db *sql.DB, users []User) (b bool, err error){
 	//Get user from DB
 	var id, firstName, lastName, email string
 	fmt.Println("Comparing file to database.")
@@ -134,13 +138,30 @@ func checkDbAgainstFile(users []User) bool{
 	for _, user := range users{
 		err := db.QueryRow(stmt, user.ID).Scan(&id, &firstName, &lastName, &email)
 		if err != nil {
-			log.Fatal(err)
+			return false, err
 		}
 		if (id != user.ID || firstName != user.firstName || lastName != user.lastName || email != user.email){
-			return false
+			return false, err
 		}
 	}
-	return true
+	return true, err
+}
+
+//Makes sure statement selects all rows from user
+//Removes additional statements after first ";""
+func ProcessStatement(stmt string) (result string, err error) {
+	//Create match string
+	match := "^(SELECT id, firstName, lastName, email FROM users)[^;]*"
+	matched, err := regexp.MatchString(match, stmt)
+	if err != nil {
+		return "", err
+	}
+	if !matched {
+		return "", fmt.Errorf("Statement doesnt match \"%s\".\n", match)
+	} 
+	//Removes additional statements
+	result = fmt.Sprintf("%s%s", strings.Split(stmt, ";")[0], ";")
+	return result, err
 }
 
 

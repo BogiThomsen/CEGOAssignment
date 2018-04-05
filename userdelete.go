@@ -22,17 +22,17 @@ func main() {
 	var users []User
 
 	//Connect to databse
-	err := connectToDatabase()
+	db, err := ConnectToDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
 	//Close the database when done
-	defer closeDatabase() 	
+	defer CloseDatabase(db) 	
 
 	//Run select statement
-	err = runSelectStatement(&users)
+	err = RunSelectStatement(db, &users)
 	if len(users) == 0 {
-		err = fmt.Errorf("No users returned by statement: \"%s\"\n", config.Stmt)
+		err = fmt.Errorf("No users returned by statement: \"%s\"\n", processedStmt)
 	}
 	if err != nil{
 		log.Fatal(err)
@@ -41,14 +41,14 @@ func main() {
 	}
 
 	//Prints users to console for user confirmation
-	printUsers(users)
+	PrintUsers(users)
 	
 	fmt.Printf("Do you wish to delete these %d users from the database? (y/n)\n", len(users))
 	//Ask user for confirmation before deleting users
-	conf := userConfirmation()
+	conf := UserConfirmation()
 	if conf {
 		//Write users to file
-		err = writeUsersToFile(&users)
+		err = WriteUsersToFile(&users)
 		if err != nil {
 			log.Fatal(err)
 		} else {
@@ -57,34 +57,43 @@ func main() {
 
 
 		//Checking file data vs database data
-		fileUsers, err := readUsersFromFile()
+		fileUsers, err := ReadUsersFromFile()
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		//Check data in database against data in file
-		correct := checkDbAgainstFile(fileUsers)
+		correct, err := CheckDbAgainstFile(db, fileUsers)
+		if err != nil {
+			log.Fatal(err)
+		}
 		if correct {
 			fmt.Println("Comparison finished. Data is correct")
+
+			//Creating temporary table to delete users from database
+			err = CreateTempTableForDelete(db)
+			if err != nil {
+				return
+			}
 			//Deletes users based on ID
-			err = deleteUsersByIdTransaction()
+			err = DeleteUsersByIdTransaction(db)
 			if err != nil {
 				fmt.Println("Delete failed. Now deleting created file.")
 				//Delete file
-				deleteFile()
+				DeleteFile()
 				err = fmt.Errorf("File deleted due to: %s\n", err)
 				log.Fatal(err)
 			}
 		} else {
 			err = fmt.Errorf("Data in file is not correct. Delete aborted. Now deleting file.")
-			deleteFile()
+			DeleteFile()
 			log.Fatal(err)
 		} 
 	}
 }
 
 //Asks user for y/n confirmation returns bool if answer is y, loops on wrong input
-func userConfirmation() bool {
+func UserConfirmation() bool {
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {
@@ -99,16 +108,25 @@ func userConfirmation() bool {
 	} else {
 		//Recursion on wrong input to ask again
 		fmt.Println("Please type y or n, then ENTER:")
-		return userConfirmation()
+		return UserConfirmation()
 	}
 }
 
 
 //prints user data to console
-func printUsers(users []User){
+func PrintUsers(users []User){
 	//iterate over users in array
 	for _, user := range users {
 		//print to console
 		fmt.Println("id: " + user.ID + ", firstName: " + user.firstName + ", lastName: " + user.lastName + ", email: " + user.email)
 	}
+}
+
+func NewUser (id string, fName string, lName string, mail  string) User {
+	return User {
+				ID: id,
+				firstName: fName,
+				lastName: lName, 
+				email: mail,
+			}
 }

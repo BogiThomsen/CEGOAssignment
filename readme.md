@@ -8,7 +8,7 @@ The solution is a console application that goes through the following steps: <br
 	2. Ask for confirmation of deletion of data, so the user can catch any errors in their SQL statement before data is deleted. <br />
 	3. Writes results of query to file. <br />
 	4. Reads file and, per row, queries the database on id and compares data in file against data in database. <br />
-	5. It the data in file is correct, it deletes the data from the database. <br />
+	5. If the data in file is correct, it deletes the data from the database. <br />
 
 ## How to use
 Fill out the config.toml file, build and run the application. <br />
@@ -16,11 +16,12 @@ To change SQL statement or database, just change it in the config file and run a
 
 
 ## Testing
-Still to come
+Run tests with "go test -race"
 
 ## Concerns
 This solution will run any SQL statement passed from the config file. As the user also has to supply the username/password for the database, this hasn't been a focus to protect against. <br />
 
 ## Future work
 The solution could be created as a package instead of an application. <br />
+Update to take DSN as input instead of TOMÆ config, and use https://godoc.org/github.com/go-sql-driver/mysql#Config
 
