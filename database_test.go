@@ -69,7 +69,7 @@ func TestCheckDbAgainstFilePass(t *testing.T){
 
 	//Create user array
 	var users []User
-	users = append(users, User{ID:"1", firstName:"testFirstName", lastName:"testLastName", email:"testEmail"})
+	users = append(users, NewUser("1", "testFirstName", "testLastName", "testEmail"))
 	
 	//Create columns
 	columns := []string{"id", "firstName", "lastName", "email"}
@@ -106,7 +106,7 @@ func TestCheckDbAgainstFileFailComparison(t *testing.T){
 
 	//Create user array
 	var users []User
-	users = append(users, User{ID:"1", firstName:"testFirstName", lastName:"testLastName", email:"testEmail"})
+	users = append(users, NewUser("1", "testFirstName", "testLastName", "testEmail"))
 	//Create columns
 	columns := []string{"id", "firstName", "lastName", "email"}
 
@@ -141,7 +141,7 @@ func TestCheckDbAgainstFileFailErrorQuery(t *testing.T){
 
 	//Create user array
 	var users []User
-	users = append(users, User{ID:"1", firstName:"testFirstName", lastName:"testLastName", email:"testEmail"})
+	users = append(users, NewUser("1", "testFirstName", "testLastName", "testEmail"))
 
 	//Set expectations: query returns an error
 	mock.ExpectQuery("SELECT id, firstName, lastName, email FROM users").WithArgs("1").WillReturnError(fmt.Errorf("Query error"))

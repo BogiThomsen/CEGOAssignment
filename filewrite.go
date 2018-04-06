@@ -18,23 +18,23 @@ func WriteUsersToFile(users *[]User) (err error){
 	//Create subfolder for data if it doesnt exist
 	err = os.MkdirAll(filepath.Join(".","DeletedUserData"), os.ModePerm)
 	if err != nil {
-        err = fmt.Errorf("Error creating folder: %s", err)
-        return
+		err = fmt.Errorf("Error creating folder: %s", err)
+    	return
     }
 	//Creates file
 	fileName = BuildCSVFileName()
 	file, err := os.Create(fileName)
-    if err != nil {
-        err = fmt.Errorf("Cannot create file: %s", err)
-        return
-    } else {
-    	fmt.Printf("Writing %d users to file.\n", len(*users))
-    }
-    //close the file when done
-    defer file.Close()
+	if err != nil {
+		err = fmt.Errorf("Cannot create file: %s", err)
+		return
+	} else {
+		fmt.Printf("Writing %d users to file.\n", len(*users))
+	}
+	//close the file when done
+	defer file.Close()
 
-    //Writes CSV header
-    _, err = fmt.Fprintln(file, "id;firstName;lastName;email")
+	//Writes CSV header
+	_, err = fmt.Fprintln(file, "id;firstName;lastName;email")
     if err != nil{
     	return
     }
@@ -52,14 +52,14 @@ func WriteUsersToFile(users *[]User) (err error){
 func ReadUsersFromFile() (users []User, err error){
 	fmt.Println("Reading users from file.")
 	//open file that was created this session
-	f, err := os.Open(fileName)
+	file, err := os.Open(fileName)
 	if err != nil {
 		return
 	}
-	defer f.Close()
+	defer file.Close()
 
 	//create reader
-	reader := csv.NewReader(f)
+	reader := csv.NewReader(file)
 	reader.Comma = ';'
 	//handle header
 	_, err = reader.Read()
@@ -68,19 +68,19 @@ func ReadUsersFromFile() (users []User, err error){
 	}
 	//iterate over lines and create users
 	for {   
-			//read line, break if end of file.
-            line, err := reader.Read()
-            if err != nil {
-                if err == io.EOF {
-                    break
-                }
-                log.Fatal(err)
+		//read line, break if end of file.
+        line, err := reader.Read()
+        if err != nil {
+            if err == io.EOF {
+                break
             }
-            //create user
-        	user := NewUser(line[0], line[1], line[2], line[3])
-			
-			//append to array of users
-			users = append(users, user)    
+            log.Fatal(err)
+        }
+        //create user
+    	user := NewUser(line[0], line[1], line[2], line[3])
+		
+		//append to array of users
+		users = append(users, user)    
         }
 	
 	//Set error if no users in file
