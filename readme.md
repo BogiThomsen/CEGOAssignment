@@ -13,6 +13,11 @@ This solution will match the SQL statement in the config file against: <br />
 `"SELECT id, firstName, lastName, email FROM users"`, and additional statements after first `;` are removed before the statement is run.
 
 ## How to use
+First get needed packages: <br />
+`go get gopkg.in/DATA-DOG/go-sqlmock.v1` <br />
+`go get github.com/BurntSushi/toml` <br />
+`go get github.com/go-sql-driver/mysql` <br />
+
 Fill out the config.toml file, build and run the application. <br />
 To change SQL statement or database, just change it in the config file and run again. No need to rebuild. <br />
 
